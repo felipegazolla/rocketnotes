@@ -62,8 +62,8 @@ function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    const token = localStorage.removeItem("@rocketnotes:token")
-    const user = localStorage.removeItem("@rocketnotes:user")
+    const token = localStorage.getItem("@rocketnotes:token")
+    const user = localStorage.getItem("@rocketnotes:user")
 
     if (token && user) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`

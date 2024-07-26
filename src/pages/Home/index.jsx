@@ -6,8 +6,48 @@ import { Note } from '../../components/Note'
 import { Input } from '../../components/Input'
 import { Section } from '../../components/Section'
 import { ButtonText } from '../../components/ButtonText'
+import { useEffect, useState } from 'react'
+import { api } from '../../services/api'
 
 export function Home() {
+  const [tags, setTags] = useState([])
+  const [tagSelected, setTagSelected] = useState([])
+  const [search, setSearch] = useState("")
+  const [notes, setNotes] = useState([])
+
+  function handleTagSelected(tagName) {
+    if(tagName === "all") {
+      return setTagSelected([])
+    }
+
+    const alreadySelected = tagSelected.includes(tagName)
+
+    if(alreadySelected) {
+      const filteredTags = tagSelected.filter(tag => tag !== tagName)
+      setTagSelected(filteredTags)
+
+    } else {
+      setTagSelected(prevState => [...prevState, tagName])
+    }
+  }
+
+  useEffect(() => {
+    async function fetchTags() {
+      const response = await api.get("/tags")
+      setTags(response.data)
+    }
+    fetchTags()
+  }, [])
+
+  useEffect(() => {
+    async function fetchNotes() {
+      const response = await api.get(`/notes?title=${search}&tags=${tagSelected}`)
+      setNotes(response.data)
+    }
+
+    fetchNotes()
+  }, [tagSelected, search])
+
   return (
     <Container>
 
@@ -18,23 +58,44 @@ export function Home() {
       <Header/>
 
       <Menu>
-        <li><ButtonText title="Todos" isactive /></li>
-        <li><ButtonText title="React" /></li>
-        <li><ButtonText title="Nodejs" /></li>
+        <li>
+          <ButtonText 
+            title="Todos" 
+            $isactive={tagSelected.length === 0} 
+            onClick={() => handleTagSelected("all")}
+          />
+        </li>
+        {
+          tags && tags.map(tag => (
+            <li 
+              key={String(tag.id)} 
+            >
+              <ButtonText 
+                title={tag.name} 
+                $isactive={tagSelected.includes(tag.name)} 
+                onClick={() => handleTagSelected(tag.name)} 
+              />
+            </li>
+          ))
+        }
       </Menu>
       <Search>
-        <Input placeholder="Pesquisar" icon={FiSearch}/>
+        <Input 
+          placeholder="Pesquisar" 
+          icon={FiSearch}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </Search>
       <Content>
         <Section title="Minhas Notas">
-          <Note data={{ 
-            title: 'React', 
-            tags: [
-              { id: '1', name: 'react' },
-              { id: '2', name: 'node' }
-              ]
-            }}
-            />
+          {
+            notes.map(note => (
+              <Note 
+                key={String(note.id)}
+                data={note}
+              />
+            ))
+          }
         </Section>
       </Content>
       <NewNote to="/new">
