@@ -28,8 +28,8 @@ function AuthProvider({ children }) {
   }
 
   function signOut() {
-    localStorage.getItem("@rocketnotes:token")
-    localStorage.getItem("@rocketnotes:user")
+    localStorage.removeItem("@rocketnotes:token")
+    localStorage.removeItem("@rocketnotes:user")
 
     setData({})
   }
